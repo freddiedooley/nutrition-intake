@@ -97,6 +97,7 @@ gensim @ file:///Users/ec2-user/ci_py311/gensim_1678412014794/work
 glob2 @ file:///home/linux1/recipes/ci/glob2_1610991677669/work
 gmpy2 @ file:///Users/ec2-user/ci_py311/gmpy2_1678380831980/work
 greenlet @ file:///Users/ec2-user/ci_py311/greenlet_1678323340336/work
+gunicorn==25.0.3
 h5py @ file:///private/var/folders/sy/f16zz6x50xz3113nwtb9bvq00000gp/T/abs_a4au6npi7q/croot/h5py_1691589712522/work
 HeapDict @ file:///Users/ktietz/demo/mc3/conda-bld/heapdict_1630598515714/work
 holoviews @ file:///private/var/folders/sy/f16zz6x50xz3113nwtb9bvq00000gp/T/abs_3eb8ci9zf1/croot/holoviews_1693378050281/work
