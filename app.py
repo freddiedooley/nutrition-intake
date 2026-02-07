@@ -41,11 +41,9 @@ def init_db():
 
 init_db()
 
-sqlite3.connect(DB_PATH)
-
 # ---------------- Upload config ----------------
 
-UPLOAD_FOLDER = os.path.join(os.getcwd(), "uploads")
+UPLOAD_FOLDER = os.path.join(BASE_DIR, "uploads")
 ALLOWED_EXTENSIONS = {"jpg", "jpeg", "png", "pdf"}
 MAX_FILE_SIZE_MB = 10
 
