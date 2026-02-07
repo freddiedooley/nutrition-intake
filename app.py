@@ -7,6 +7,10 @@ import json
 import sqlite3
 import os
 import base64
+
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+DB_PATH = os.path.join(BASE_DIR, "intake.db")
+
 from datetime import datetime, timezone
 from pathlib import Path
 from functools import wraps
@@ -21,6 +25,23 @@ from questions import FORM_SECTIONS, flatten_questions
 # ------------------------------------------------------------
 
 app = Flask(__name__)
+def init_db():
+    with sqlite3.connect(DB_PATH) as conn:
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS intakes (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                athlete_name TEXT,
+                email TEXT,
+                payload TEXT,
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        conn.commit()
+
+
+init_db()
+
+sqlite3.connect(DB_PATH)
 
 # ---------------- Upload config ----------------
 
@@ -364,6 +385,5 @@ def export_csv():
 # ------------------------------------------------------------
 
 if __name__ == "__main__":
-    init_db()
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=True)
 
