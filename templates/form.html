@@ -1,0 +1,440 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Boxer Nutrition & Weight Intake</title>
+<style>
+  :root{
+    --bg: #0b0f17;          /* page background */
+    --panel: #0f1623;       /* header panels */
+    --card: #111b2c;        /* card background */
+    --card2: #0f1726;       /* slightly darker for variety */
+    --text: #e8edf6;        /* primary text */
+    --muted: #a7b1c2;       /* secondary text */
+    --line: rgba(255,255,255,.08);
+    --accent: #d4af37;      /* "gold" accent (premium, restrained) */
+    --accent2: #7dd3fc;     /* optional cool accent for links */
+    --radius: 16px;
+    --shadow: 0 12px 30px rgba(0,0,0,.35);
+  }
+
+  *{ box-sizing:border-box; }
+
+  body{
+    margin:0;
+    font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+    background: radial-gradient(1200px 600px at 10% 0%, rgba(212,175,55,.10), transparent 55%),
+                radial-gradient(900px 500px at 90% 10%, rgba(125,211,252,.08), transparent 60%),
+                var(--bg);
+    color: var(--text);
+    line-height: 1.55;
+  }
+
+  .wrap{
+    max-width: 920px;
+    margin: 28px auto;
+    padding: 0 16px 70px;
+  }
+
+  /* Top title area */
+  h1{
+    font-size: 22px;
+    margin: 0 0 14px;
+    letter-spacing: -0.02em;
+  }
+
+  /* Premium header bar */
+  .hero{
+    background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    box-shadow: var(--shadow);
+    margin-bottom: 14px;
+  }
+
+  .hero .kicker{
+    color: var(--muted);
+    font-size: 12.5px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    margin: 0 0 6px;
+  }
+
+  h2{
+    font-size: 16px;
+    margin: 0 0 10px;
+    letter-spacing: -0.01em;
+  }
+
+  .card{
+    background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 18px;
+    box-shadow: 0 10px 26px rgba(0,0,0,.22);
+    margin: 14px 0;
+  }
+
+  /* Use for the "Supporting documents" card */
+  .card.callout{
+    border-left: 4px solid var(--accent);
+  }
+
+  .muted{
+    color: var(--muted);
+    font-size: 13.5px;
+    margin: 8px 0 0;
+  }
+
+  /* Links */
+  a{
+    color: var(--accent2);
+    text-decoration: none;
+  }
+  a:hover{ text-decoration: underline; }
+
+  /* Questions layout */
+  .question{
+    padding: 14px 0;
+    border-top: 1px solid var(--line);
+  }
+  .question:first-child{ border-top:none; padding-top:0; }
+  .question:last-child{ padding-bottom:0; }
+
+  label{
+    display:block;
+    font-weight: 650;
+    font-size: 14px;
+    margin: 0 0 8px;
+    color: var(--text);
+  }
+
+  /* Inputs */
+  input[type="text"],
+  input[type="number"],
+  input[type="date"],
+  input[type="time"],
+  input[type="email"],
+  select,
+  textarea{
+    width: 100%;
+    border: 1px solid rgba(255,255,255,.10);
+    background: rgba(0,0,0,.18);
+    color: var(--text);
+    border-radius: 14px;
+    padding: 11px 12px;
+    font-size: 14px;
+    outline: none;
+    transition: box-shadow .15s ease, border-color .15s ease, background .15s ease;
+  }
+
+  textarea{ min-height: 92px; resize: vertical; }
+
+  input::placeholder, textarea::placeholder{ color: rgba(232,237,246,.45); }
+
+  input:focus, select:focus, textarea:focus{
+    border-color: rgba(212,175,55,.55);
+    box-shadow: 0 0 0 4px rgba(212,175,55,.14);
+    background: rgba(0,0,0,.26);
+  }
+
+  /* Radio/checkbox options */
+  .opts{
+    display: grid;
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+  .opt{
+    display:flex;
+    align-items:flex-start;
+    gap: 10px;
+    padding: 10px 12px;
+    border: 1px solid rgba(255,255,255,.10);
+    border-radius: 14px;
+    background: rgba(0,0,0,.16);
+  }
+  .opt input{ margin-top: 2px; }
+
+  /* Make checkboxes/radios feel cleaner */
+  input[type="checkbox"], input[type="radio"]{
+    accent-color: var(--accent);
+  }
+
+  /* Section header row (optional) */
+  .section-title{
+    display:flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 4px;
+  }
+  .section-title small{
+    color: var(--muted);
+    font-weight: 600;
+    font-size: 12.5px;
+  }
+
+  /* Buttons */
+  .btn{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    border-radius: 14px;
+    padding: 12px 16px;
+    font-weight: 800;
+    cursor:pointer;
+    border: 1px solid rgba(255,255,255,.12);
+    background: rgba(255,255,255,.06);
+    color: var(--text);
+  }
+
+  .btn.primary{
+    background: linear-gradient(180deg, rgba(212,175,55,.95), rgba(212,175,55,.78));
+    border-color: rgba(212,175,55,.35);
+    color: #0b0f17;
+  }
+  .btn.primary:hover{ filter: brightness(1.03); }
+
+  button[type="submit"]{
+    width: 100%;
+    margin-top: 12px;
+    padding: 14px 16px;
+    border-radius: 16px;
+    font-size: 15px;
+    font-weight: 900;
+    letter-spacing: .01em;
+  }
+
+  /* Tip text */
+  .tip{
+    color: rgba(232,237,246,.65);
+    font-size: 12.5px;
+    margin-top: 10px;
+  }
+
+  /* Mobile */
+  @media (max-width: 640px){
+    .wrap{ margin: 18px auto; }
+    .card{ padding: 16px; }
+  }
+</style>
+
+</head>
+<body>
+  <div class="wrap">
+    <h1>Amateur Boxer Performance, Nutrition & Weight Management Intake</h1>
+
+<div class="hero">
+  <div class="kicker">Amateur Boxing Intake</div>
+  <h1>Amateur Boxer Performance, Nutrition & Weight Management Intake</h1>
+  <div class="muted">Please answer as accurately as you can. If unsure, leave blank or choose “Unsure”.</div>
+</div>
+
+<div class="card callout">
+  <h2>Supporting documents (optional but recommended)</h2>
+
+  <p class="muted">
+    Please complete the questionnaire first. At the bottom of the form, you can upload screenshots or documents
+    that help show your usual eating, training, or weight history.
+  </p>
+
+  <div class="muted" style="margin-top: 10px;">
+    <strong>Examples:</strong>
+    <ul style="margin: 8px 0 0 18px;">
+      <li>Food tracking logs (MyFitnessPal, Cronometer, etc.)</li>
+      <li>Daily weigh-ins / weight cut logs</li>
+      <li>Supplement labels or product photos</li>
+      <li>Previous diet plans or fight week plans</li>
+      <li>Training or wearable data (optional)</li>
+    </ul>
+  </div>
+
+  <p class="muted" style="margin-top: 10px;">
+    <strong>Weight logs</strong> and <strong>food logs</strong> are especially helpful.
+  </p>
+
+  <p class="muted" style="margin-top: 10px;">
+    All uploads are confidential and used only for coaching purposes.
+  </p>
+</div>
+
+
+
+<form method="post" action="/submit" id="intakeForm" enctype="multipart/form-data">
+  <div id="start-questionnaire"></div>
+
+      {% for section in sections %}
+      <div class="card">
+<div class="section-title">
+  <h2>{{ section.title }}</h2>
+</div>
+
+        {% if section.description %}
+          <p>{{ section.description }}</p>
+        {% endif %}
+
+        {% for q in section.questions %}
+          <div class="question"
+               data-name="{{ q.name }}"
+               {% if q.show_if %}
+                 data-show-if='{{ q.show_if | tojson }}'
+               {% endif %}>
+
+            {% if q.type != "checkbox_single" %}
+              <label for="{{ q.name }}">{{ q.label }}{% if q.required %} *{% endif %}</label>
+            {% endif %}
+
+            {% if q.type in ["text", "number", "date", "time"] %}
+              <input
+                id="{{ q.name }}"
+                name="{{ q.name }}"
+                type="{{ "text" if q.type=="text" else q.type }}"
+                {% if q.required %} required {% endif %}
+              />
+
+            {% elif q.type == "textarea" %}
+              <textarea
+                id="{{ q.name }}"
+                name="{{ q.name }}"
+                {% if q.required %} required {% endif %}
+              ></textarea>
+
+            {% elif q.type == "select" %}
+              <select id="{{ q.name }}" name="{{ q.name }}" {% if q.required %} required {% endif %}>
+                <option value="">Select...</option>
+                {% for opt in q.options %}
+                  <option value="{{ opt }}">{{ opt }}</option>
+                {% endfor %}
+              </select>
+
+            {% elif q.type == "radio" %}
+              <div class="opts">
+                {% for opt in q.options %}
+                <label class="opt">
+                  <input type="radio" name="{{ q.name }}" value="{{ opt }}" {% if q.required %} required {% endif %} />
+                  <span>{{ opt }}</span>
+                </label>
+                {% endfor %}
+              </div>
+
+            {% elif q.type == "checkbox" %}
+              <div class="opts">
+                {% for opt in q.options %}
+                <label class="opt">
+                  <input type="checkbox" name="{{ q.name }}" value="{{ opt }}" />
+                  <span>{{ opt }}</span>
+                </label>
+                {% endfor %}
+              </div>
+              <div class="muted">You can select more than one.</div>
+
+            {% elif q.type == "checkbox_single" %}
+              <label class="opt">
+                <input type="checkbox" name="{{ q.name }}" value="Yes" {% if q.required %} required {% endif %} />
+                <span><strong>{{ q.label }}</strong> {% if q.required %}*{% endif %}</span>
+              </label>
+
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+      {% endfor %}
+
+<div class="card">
+  <h2>Uploads (optional)</h2>
+  <p class="muted">
+    If it’s easier or more accurate, upload screenshots / PDFs to support your answers
+    (food diary, supplement labels, weigh-in logs, past weight logs, previous diet plans, etc.).
+    Accepted: JPG, PNG, PDF (max ~10MB each).
+  </p>
+
+  <label for="food_diary_upload">Food diary screenshots (1–5 files)</label>
+  <input id="food_diary_upload" name="food_diary_upload" type="file" multiple accept=".jpg,.jpeg,.png,.pdf">
+
+  <label for="supplement_labels_upload">Supplement labels (0–5 files)</label>
+  <input id="supplement_labels_upload" name="supplement_labels_upload" type="file" multiple accept=".jpg,.jpeg,.png,.pdf">
+
+  <label for="weighin_sheet_upload">Weigh-in sheet / past weight logs / previous diet plans (any other info)</label>
+  <input id="weighin_sheet_upload" name="weighin_sheet_upload" type="file" multiple accept=".jpg,.jpeg,.png,.pdf">
+</div>
+
+
+      <button class="btn primary" type="submit">Submit Intake</button>
+      <p class="tip" style="margin-top:10px;">
+        Tip: This form is easiest on a phone. If you’re unsure, answer “Unsure” or leave it blank.
+      </p>
+    </form>
+  </div>
+
+  <script>
+    // ------------------------------------------------------------
+    // Simple branching (show/hide)
+    // ------------------------------------------------------------
+    function getFieldValue(fieldName) {
+      const radios = document.querySelectorAll(`input[type="radio"][name="${fieldName}"]`);
+      if (radios.length) {
+        const checked = document.querySelector(`input[type="radio"][name="${fieldName}"]:checked`);
+        return checked ? checked.value : "";
+      }
+
+      const checkboxes = document.querySelectorAll(`input[type="checkbox"][name="${fieldName}"]`);
+      if (checkboxes.length) {
+        return Array.from(checkboxes).filter(c => c.checked).map(c => c.value);
+      }
+
+      const el = document.querySelector(`[name="${fieldName}"]`);
+      return el ? el.value : "";
+    }
+
+    function matchesCondition(condition) {
+      const current = getFieldValue(condition.field);
+
+      if (condition.equals !== undefined) {
+        return current === condition.equals;
+      }
+      if (condition.in !== undefined) {
+        return condition.in.includes(current);
+      }
+      if (condition.contains !== undefined) {
+        if (!Array.isArray(current)) return false;
+        return current.includes(condition.contains);
+      }
+      return true;
+    }
+
+    function applyVisibility() {
+      document.querySelectorAll(".question").forEach(q => {
+        const raw = q.getAttribute("data-show-if");
+        if (!raw) return;
+
+        const condition = JSON.parse(raw);
+        const shouldShow = matchesCondition(condition);
+
+        q.classList.toggle("hidden", !shouldShow);
+
+        // If hidden, clear any inputs inside (prevents saving hidden answers)
+        if (!shouldShow) {
+          q.querySelectorAll("input, select, textarea").forEach(el => {
+            if (el.type === "radio" || el.type === "checkbox") el.checked = false;
+            else el.value = "";
+          });
+        }
+      });
+    }
+
+    // Re-run when any input changes
+    document.addEventListener("change", (e) => {
+      if (e.target.matches("input, select, textarea")) {
+        applyVisibility();
+      }
+    });
+
+    // Initial pass
+    applyVisibility();
+  </script>
+</body>
+</html>
+

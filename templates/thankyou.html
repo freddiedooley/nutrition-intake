@@ -1,0 +1,30 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Thank you</title>
+  <style>
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; margin: 0; }
+    .wrap { max-width: 780px; margin: 0 auto; padding: 18px; }
+    .card { border: 1px solid #e6e6e6; border-radius: 10px; padding: 14px; }
+    a { color: #111; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h2>Thanks — intake submitted.</h2>
+      <p>Your reference ID is <strong>#{{ intake_id }}</strong>.</p>
+      <p>
+        Coach summary link:
+        <a href="/summary/{{ intake_id }}">/summary/{{ intake_id }}</a>
+      </p>
+      <p>
+        CSV export (coach): <a href="/export/csv">/export/csv</a>
+      </p>
+    </div>
+  </div>
+</body>
+</html>
+
