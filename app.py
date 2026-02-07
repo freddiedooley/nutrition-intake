@@ -3,60 +3,58 @@
 
 from __future__ import annotations
 
-import json
-import sqlite3
-import os
 import base64
-
-BASE_DIR = os.path.abspath(os.path.dirname(__file__))
-DB_PATH = os.path.join(BASE_DIR, "intake.db")
-
+import json
+import os
+import sqlite3
 from datetime import datetime, timezone
-from pathlib import Path
 from functools import wraps
+from pathlib import Path
+
+from flask import (
+    Flask,
+    Response,
+    redirect,
+    render_template,
+    request,
+    send_from_directory,
+    url_for,
+)
 from werkzeug.utils import secure_filename
 
-from flask import Flask, render_template, request, redirect, url_for, Response, abort, send_from_directory
-
 from questions import FORM_SECTIONS, flatten_questions
+
+# ------------------------------------------------------------
+# Paths / storage
+# ------------------------------------------------------------
+
+BASE_DIR = Path(__file__).resolve().parent
+DB_PATH = BASE_DIR / "intakes.sqlite3"  # pick ONE filename and keep it everywhere
+
+# Uploads live on disk (note: Render disk is ephemeral unless you add a persistent disk)
+UPLOAD_FOLDER = str(BASE_DIR / "uploads")
 
 # ------------------------------------------------------------
 # App setup
 # ------------------------------------------------------------
 
 app = Flask(__name__)
-def init_db():
-    with sqlite3.connect(DB_PATH) as conn:
-        conn.execute("""
-            CREATE TABLE IF NOT EXISTS intakes (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                athlete_name TEXT,
-                email TEXT,
-                payload TEXT,
-                created_at TEXT DEFAULT CURRENT_TIMESTAMP
-            )
-        """)
-        conn.commit()
-
-
-init_db()
 
 # ---------------- Upload config ----------------
 
-UPLOAD_FOLDER = os.path.join(BASE_DIR, "uploads")
 ALLOWED_EXTENSIONS = {"jpg", "jpeg", "png", "pdf"}
-MAX_FILE_SIZE_MB = 10
+MAX_FILE_SIZE_MB = 10  # currently informational (you can enforce if you want)
 
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
-
 # ------------------------------------------------------------
-# Coach Basic Auth (protect summary/export)
+# Coach Basic Auth (protect summary/export/uploads)
 # ------------------------------------------------------------
 
 COACH_USER = os.environ.get("COACH_USER", "coach")
 COACH_PASS = os.environ.get("COACH_PASS", "change-me")
+
 
 def check_basic_auth(auth_header: str | None) -> bool:
     if not auth_header or not auth_header.startswith("Basic "):
@@ -83,11 +81,13 @@ def require_basic_auth(view_func):
                 {"WWW-Authenticate": 'Basic realm="Coach Area"'},
             )
         return view_func(*args, **kwargs)
+
     return wrapper
 
 
-BASE_DIR = Path(__file__).resolve().parent
-DB_PATH = BASE_DIR / "intakes.sqlite3"
+# ------------------------------------------------------------
+# Upload helpers
+# ------------------------------------------------------------
 
 def allowed_file(filename: str) -> bool:
     if "." not in filename:
@@ -96,8 +96,8 @@ def allowed_file(filename: str) -> bool:
     return ext in ALLOWED_EXTENSIONS
 
 
-def save_uploaded_files(files, prefix: str, intake_id: int):
-    saved = []
+def save_uploaded_files(files, prefix: str, intake_id: int) -> list[str]:
+    saved: list[str] = []
 
     for f in files:
         if not f or f.filename == "":
@@ -143,6 +143,11 @@ def init_db() -> None:
         connection.commit()
 
 
+# Create tables at startup (safe: IF NOT EXISTS)
+init_db()
+print("DB_PATH:", DB_PATH)
+
+
 def insert_intake(athlete_name: str | None, email: str | None, data: dict) -> int:
     created_at_utc = datetime.now(timezone.utc).isoformat()
 
@@ -169,9 +174,7 @@ def fetch_intake(intake_id: int) -> sqlite3.Row | None:
 
 def fetch_all_intakes() -> list[sqlite3.Row]:
     with get_connection() as connection:
-        rows = connection.execute(
-            "SELECT * FROM intakes ORDER BY id DESC"
-        ).fetchall()
+        rows = connection.execute("SELECT * FROM intakes ORDER BY id DESC").fetchall()
         return list(rows)
 
 
@@ -183,9 +186,9 @@ def update_payload(intake_id: int, payload: dict) -> None:
             SET data_json = ?
             WHERE id = ?
             """,
-            (json.dumps(payload), intake_id),
+            (json.dumps(payload, ensure_ascii=False), intake_id),
         )
-
+        connection.commit()
 
 
 # ------------------------------------------------------------
@@ -194,13 +197,13 @@ def update_payload(intake_id: int, payload: dict) -> None:
 
 @app.route("/uploads/<filename>")
 @require_basic_auth
-def uploaded_file(filename):
-    return send_from_directory("uploads", filename)
+def uploaded_file(filename: str):
+    # Serve from the configured upload folder (stable on Render)
+    return send_from_directory(app.config["UPLOAD_FOLDER"], filename)
 
 
 @app.route("/", methods=["GET"])
 def form():
-    # All questions (for rendering + validation hints)
     flat_questions = flatten_questions(FORM_SECTIONS)
 
     return render_template(
@@ -212,36 +215,29 @@ def form():
 
 @app.route("/submit", methods=["POST"])
 def submit():
-    # Collect all form fields into a dict
     payload: dict[str, object] = {}
 
-    # Basic “identity” helpers (optional)
     athlete_name = (request.form.get("athlete_name") or "").strip() or None
     email = (request.form.get("email") or "").strip() or None
 
-    # Capture every posted key/value
-    # For multi-select checkboxes, Flask uses getlist()
     for key in request.form.keys():
         if key in ("athlete_name", "email"):
             continue
 
         values = request.form.getlist(key)
-
         if len(values) == 1:
             payload[key] = values[0].strip()
         else:
             payload[key] = [v.strip() for v in values if v.strip()]
 
-    # Add metadata
     payload["_meta"] = {
         "submitted_at_utc": datetime.now(timezone.utc).isoformat(),
         "user_agent": request.headers.get("User-Agent", ""),
     }
 
     intake_id = insert_intake(athlete_name, email, payload)
-    
-    # -------- Handle uploads AFTER intake exists --------
 
+    # -------- Handle uploads AFTER intake exists --------
     food_files = request.files.getlist("food_diary_upload")
     supp_files = request.files.getlist("supplement_labels_upload")
     weigh_files = request.files.getlist("weighin_sheet_upload")
@@ -250,14 +246,11 @@ def submit():
     supp_saved = save_uploaded_files(supp_files, "supp", intake_id)
     weigh_saved = save_uploaded_files(weigh_files, "weigh", intake_id)
 
-    # Add filenames into payload
     payload["food_uploads"] = food_saved
     payload["supp_uploads"] = supp_saved
     payload["weigh_uploads"] = weigh_saved
 
-    # Update database with new payload including filenames
     update_payload(intake_id, payload)
-
 
     return redirect(url_for("thankyou", intake_id=intake_id))
 
@@ -279,7 +272,6 @@ def summary(intake_id: int):
 
     data = json.loads(row["data_json"])
 
-    # A few useful computed flags (simple + practical)
     def to_float(value: str | None) -> float | None:
         if value is None:
             return None
@@ -292,15 +284,14 @@ def summary(intake_id: int):
             return None
 
     walk_around = to_float(data.get("walk_around_weight"))
-    comp_weight = to_float(data.get("current_bodyweight"))
     weight_class = data.get("competition_weight_class")
-
     cut_amount = to_float(data.get("typical_cut_amount"))
+
     cut_percent = None
     if walk_around and cut_amount is not None and walk_around > 0:
         cut_percent = (cut_amount / walk_around) * 100.0
 
-    red_flags = []
+    red_flags: list[str] = []
     methods = set(data.get("cut_methods", []) if isinstance(data.get("cut_methods"), list) else [])
     symptoms = set(data.get("cut_symptoms", []) if isinstance(data.get("cut_symptoms"), list) else [])
 
@@ -339,11 +330,9 @@ def summary(intake_id: int):
 def export_csv():
     rows = fetch_all_intakes()
 
-    # Build a stable header from known questions
     flat_questions = flatten_questions(FORM_SECTIONS)
     field_names = ["id", "created_at_utc", "athlete_name", "email"] + [q["name"] for q in flat_questions]
 
-    # CSV creation (manual, to keep dependencies at zero)
     def csv_escape(value: object) -> str:
         if value is None:
             return ""
@@ -353,7 +342,7 @@ def export_csv():
         text = text.replace('"', '""')
         return f'"{text}"'
 
-    lines = []
+    lines: list[str] = []
     lines.append(",".join(csv_escape(h) for h in field_names))
 
     for row in rows:
