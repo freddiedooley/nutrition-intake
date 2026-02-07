@@ -324,6 +324,25 @@ def summary(intake_id: int):
 
     return render_template("summary.html", intake_id=intake_id, s=summary_data)
 
+@app.route("/coach", methods=["GET"])
+@require_basic_auth
+def coach_dashboard():
+    rows = fetch_all_intakes()
+
+    # Convert sqlite rows into simple dicts for the template
+    intakes = []
+    for row in rows:
+        intakes.append(
+            {
+                "id": row["id"],
+                "created_at_utc": row["created_at_utc"],
+                "athlete_name": row["athlete_name"],
+                "email": row["email"],
+            }
+        )
+
+    return render_template("coach_dashboard.html", intakes=intakes)
+
 
 @app.route("/export/csv", methods=["GET"])
 @require_basic_auth
